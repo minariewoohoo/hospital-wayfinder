@@ -254,7 +254,7 @@ def build_hospital_graph(dxf_file_path):
                 if pts[i] != pts[i+1]: lines_by_layer[layer_name].append(LineString([pts[i], pts[i+1]]))
 
     # ==========================================
-    # 2. MERGE & BUILD GRAPH BY LAYER (NOW WITH DISTANCE)
+    # 2. MERGE & BUILD GRAPH BY LAYER
     # ==========================================
     for layer_name, raw_lines in lines_by_layer.items(): 
         merged = unary_union(raw_lines)
@@ -273,7 +273,7 @@ def build_hospital_graph(dxf_file_path):
                 all_endpoints.update([coords[i], coords[i+1]])
 
     # ---------------------------------------------------------
-    # 🚨 THE NODE FUSION ALGORITHM (CAD SLOP FIX)
+    # THE NODE FUSION ALGORITHM (CAD SLOP FIX)
     # ---------------------------------------------------------
     TOLERANCE = 50.0 
     
@@ -441,7 +441,7 @@ def find_optimized_paths(graph, destinations, start_room, end_room, user_role, i
                         break
             
             if not is_valid:
-                pass # DEBUG: We disabled the Anti-Bounce kill switch! 
+                pass
                     
             # ---------------------------------------------------------
             # FILTER 2: THE STRICT TRANSFER BAN
@@ -466,15 +466,15 @@ def find_optimized_paths(graph, destinations, start_room, end_room, user_role, i
                 was_on_transit = is_transit
             
             if transit_hops > 1:
-                pass # DEBUG: We disabled the Transit Transfer kill switch!
+                pass
             
             is_mixed = 1 if (uses_elev and uses_stair) else 0
             
             # Use original uncongested graph (or congested graph) for the weight display
-            # Wait, let's use the routing_G but subtract the 50000 penalty so congestion shows up in UI
+            # Uses the routing_G but subtracts the 50000 penalty so congestion shows up in UI
             real_weight = sum(routing_G[p[i]][p[i+1]]['weight'] % 50000 for i in range(len(p)-1))
             
-            # ADDED: Mathematically sum up the physical distance!
+            # Mathematically sum up the physical distance.
             real_distance = sum(safe_G[p[i]][p[i+1]].get('distance', 0) for i in range(len(p)-1))
             
             scored_paths.append({
@@ -518,7 +518,7 @@ def find_optimized_paths(graph, destinations, start_room, end_room, user_role, i
                     visited_floors.append(floor)
             
             # If the length of the list doesn't match the length of the SET, 
-            # it means a floor appears twice (e.g., UG, 2F, 3F, 2F). Kill the route!
+            # Kills the route when a floor appears twice (e.g., UG, 2F, 3F, 2F).
             if len(visited_floors) != len(set(visited_floors)):
                 continue 
             # ----------------------------------
@@ -542,7 +542,7 @@ def find_optimized_paths(graph, destinations, start_room, end_room, user_role, i
                 sp['name'] = "Pure Stairs Route"
                 stair_route = sp
 
-        # Gather the routes we successfully found
+        # Gather the routes successfully found
         final_paths = [p for p in [best_route, elev_route, stair_route] if p is not None]
 
         # ---------------------------------------------------------
@@ -581,7 +581,6 @@ def find_optimized_paths(graph, destinations, start_room, end_room, user_role, i
                 'path_coords': path
             })
             
-        # We now return a clean list of dictionaries instead of a giant text string!
         return route_data, [p['path_coords'] for p in route_data]
         
     except nx.NetworkXNoPath:
