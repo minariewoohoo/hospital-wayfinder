@@ -345,11 +345,9 @@ def build_hospital_graph(dxf_file_path):
             if "STAIR" in base:
                 phys_dist = diff * 3.5 # Standard 3.5m floor height estimation
                 cost = phys_dist / SPEED_STAIR_UP 
-                # ADDED: Store vertical physical distance for stairs
                 G.add_edge(p1, p2, weight=cost, distance=phys_dist)
             else:
                 cost = ELEV_WAIT_TIME + ELEV_DOOR_CYCLE + (diff * ELEV_TIME_PER_FLOOR)
-                # ADDED: Store 0 distance for elevators (standing still)
                 G.add_edge(p1, p2, weight=cost, distance=0.0)
 
     return G, destinations
