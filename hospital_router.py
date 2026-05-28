@@ -19,7 +19,7 @@ ELEV_WAIT_TIME = 45.0
 ELEV_DOOR_CYCLE = 12.0
 ELEV_TIME_PER_FLOOR = 2.5 
 
-PEAK_HOURS = [(8, 11), (16, 19)] 
+PEAK_HOURS = [(8.0, 12.0), (13.5, 16.5)] 
 CONGESTION_PENALTY = 1.35
 
 # ==========================================
