@@ -236,7 +236,7 @@ def build_hospital_graph(dxf_file_path):
     }
 
     # ==========================================
-    # 1. GROUP LINES BY DXF LAYER
+    # GROUP LINES BY DXF LAYER
     # ==========================================
     lines_by_layer = {}
     for entity in msp.query('LWPOLYLINE LINE'):
@@ -254,7 +254,7 @@ def build_hospital_graph(dxf_file_path):
                 if pts[i] != pts[i+1]: lines_by_layer[layer_name].append(LineString([pts[i], pts[i+1]]))
 
     # ==========================================
-    # 2. MERGE & BUILD GRAPH BY LAYER
+    # MERGE & BUILD GRAPH BY LAYER
     # ==========================================
     for layer_name, raw_lines in lines_by_layer.items(): 
         merged = unary_union(raw_lines)
@@ -272,9 +272,9 @@ def build_hospital_graph(dxf_file_path):
                 
                 all_endpoints.update([coords[i], coords[i+1]])
 
-    # ---------------------------------------------------------
-    # THE NODE FUSION ALGORITHM (CAD SLOP FIX)
-    # ---------------------------------------------------------
+    # ==========================================
+    # NODE FUSION ALGORITHM (CAD SLOP FIX)
+    # ==========================================
     TOLERANCE = 50.0 
     
     mapping = {}
@@ -295,10 +295,9 @@ def build_hospital_graph(dxf_file_path):
     G.remove_edges_from(nx.selfloop_edges(G))
     
     all_endpoints = set(G.nodes())
-    # ---------------------------------------------------------
 
     # ==========================================
-    # 3. PARSE TEXT LABELS
+    # PARSE TEXT LABELS
     # ==========================================
     for entity in msp.query('TEXT MTEXT'):
         txt = entity.plain_text().strip().upper() if entity.dxftype() == 'MTEXT' else entity.dxf.text.strip().upper()
@@ -323,7 +322,7 @@ def build_hospital_graph(dxf_file_path):
                     G.nodes[closest]['label'] = txt
 
     # ==========================================
-    # 4. THE "LOBBY HUB" PORTAL BUILDER
+    #  PORTAL BUILDER
     # ==========================================
     portals = {}
     for name, pt in destinations.items():
@@ -370,7 +369,9 @@ def get_restrictions(role):
         
     return []
 
-# --- THE FULLY ASSEMBLED SMART ITINERARY GENERATOR ---
+    # =========================================================
+    # ITINERARY GENERATOR
+    # =========================================================
 def find_optimized_paths(graph, destinations, start_room, end_room, user_role, is_peak_hour=False):
     if start_room not in destinations or end_room not in destinations:
         return "Start or Destination not found in database.", []
@@ -411,9 +412,9 @@ def find_optimized_paths(graph, destinations, start_room, end_room, user_role, i
         scored_paths = []
         
         for p in raw_paths:
-            # ---------------------------------------------------------
-            # FILTER 1: UNIDIRECTIONAL & ANTI-BOUNCE
-            # ---------------------------------------------------------
+                # =========================================================
+                # FILTER 1: UNIDIRECTIONAL & ANTI-BOUNCE
+                # =========================================================
             visited_floors = []
             for node in p:
                 floor = get_floor_from_y(node[1])
@@ -443,9 +444,9 @@ def find_optimized_paths(graph, destinations, start_room, end_room, user_role, i
             if not is_valid:
                 pass
                     
-            # ---------------------------------------------------------
+            # =========================================================
             # FILTER 2: THE STRICT TRANSFER BAN
-            # ---------------------------------------------------------
+            # =========================================================-
             transit_hops = 0
             was_on_transit = False
             uses_elev = False
@@ -487,13 +488,14 @@ def find_optimized_paths(graph, destinations, start_room, end_room, user_role, i
             
         if not scored_paths:
             return "No logical alternatives found. Graph connection error.", []
-            
-        # 2. THE GOLDEN SORT
+        # =========================================================    
+        # THE GOLDEN SORT
+        # =========================================================
         scored_paths.sort(key=lambda x: (x['is_mixed'], x['transit_hops'], x['weight']))
         
-        # ---------------------------------------------------------
-        # 3. CATEGORY HUNTER (The Golden Picks)
-        # ---------------------------------------------------------
+        # =========================================================
+        # CATEGORY HUNTER
+        # =========================================================
         best_route = None
         elev_route = None
         stair_route = None
@@ -510,7 +512,7 @@ def find_optimized_paths(graph, destinations, start_room, end_room, user_role, i
         for sp in scored_paths:
             path = sp['path']
             
-            # --- THE NEW ANTI-BOUNCE FILTER ---
+            # === THE NEW ANTI-BOUNCE FILTER ===
             visited_floors = []
             for node in path:
                 floor = get_floor_from_y(node[1])
@@ -521,7 +523,6 @@ def find_optimized_paths(graph, destinations, start_room, end_room, user_role, i
             # Kills the route when a floor appears twice (e.g., UG, 2F, 3F, 2F).
             if len(visited_floors) != len(set(visited_floors)):
                 continue 
-            # ----------------------------------
             
             # Scan the path to see what transit it uses
             uses_elev = any("ELEVATOR_" in safe_G.nodes[n].get('label', '').upper() for n in path)
@@ -545,9 +546,9 @@ def find_optimized_paths(graph, destinations, start_room, end_room, user_role, i
         # Gather the routes successfully found
         final_paths = [p for p in [best_route, elev_route, stair_route] if p is not None]
 
-        # ---------------------------------------------------------
-        # 4. PACKAGE DATA FOR STREAMLIT UI
-        # ---------------------------------------------------------
+        # =========================================================
+        # PACKAGE DATA FOR STREAMLIT UI
+        # =========================================================
         route_data = []
         for sp in final_paths:
             path = sp['path']
