@@ -5,10 +5,6 @@ import textwrap
 from PIL import Image
 import datetime  
 import pytz
-
-# ---------------------------------------------------------
-# THE GITHUB IMPORT FIX
-# ---------------------------------------------------------
 import importlib
 import hospital_router
 importlib.reload(hospital_router)
@@ -55,9 +51,9 @@ st.markdown(
 )
 st.title("Ospital ng Parañaque - District II Wayfinding System")
 
-# ---------------------------------------------------------
+# ==========================================
 # DETECTION BOUNDS (RAW CAD LIMITS FOR THE SLICER)
-# ---------------------------------------------------------
+# ==========================================
 DETECTION_Y_BOUNDS = {
     "LG": [-170844.5250, -159463.4517],
     "UG": [-157112.6036, -145093.5759],
